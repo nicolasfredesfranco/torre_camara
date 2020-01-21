@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 import argparse
 from numpy import linalg as LA
-import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib
+#import matplotlib.pyplot as plt
 import numpy as np
 
 from os import listdir
@@ -97,6 +97,7 @@ if __name__ == "__main__":
             array_dist = np.array(list_dist)
             list_detection.append(np.array([np.argmin(array_dist), xi]))
             list_dist = []
+        
         if (len(list_detection) > 0):
             array_detection =  np.array(list_detection).reshape(len(list_detection), 2)
             orden = np.argsort(array_detection[:,1])
@@ -104,16 +105,17 @@ if __name__ == "__main__":
             for i in range(len(list_detection)):
                 numero_final += array_detection[[orden[i]],0][0]*pow(10, len(list_detection) - i - 1)
                 #print(1)
-            x[0:23] = x[1:24]
+            x[0:24] = x[1:25]
             x[24] = 1
+            print(x)
             #print(numero_final)
         else:
-            x[0:23] = x[1:24]
+            x[0:24] = x[1:25]
             x[24] = 0
             #print('Nada')
 
         new_y = x[-3] - x[-5] + 2.88958*y[-1] - 3.21816*y[-2] + 1.6928*y[-3] - 0.370204*y[-4]
-        y[0:23] = y[1:24]
+        y[0:24] = y[1:25]
         y[24] = new_y
         if (count > 103):
             arreglo = np.array(y)
