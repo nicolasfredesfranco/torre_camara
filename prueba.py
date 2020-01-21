@@ -24,10 +24,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cap = cv2.VideoCapture(args.path)
-    promedio_grafico = []
+    #promedio_grafico = []
     init = 80
-    x = [0, 0, 0, 0]
-    y = [0, 0, 0, 0]
+    x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     count = 0
     frameHeight = round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frameWidth = round(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -104,24 +104,27 @@ if __name__ == "__main__":
             for i in range(len(list_detection)):
                 numero_final += array_detection[[orden[i]],0][0]*pow(10, len(list_detection) - i - 1)
                 #print(1)
-            x.append(1)
+            x[0:23] = x[1:24]
+            x[24] = 1
             #print(numero_final)
         else:
-            x.append(0)
+            x[0:23] = x[1:24]
+            x[24] = 0
             #print('Nada')
 
         new_y = x[-3] - x[-5] + 2.88958*y[-1] - 3.21816*y[-2] + 1.6928*y[-3] - 0.370204*y[-4]
-        y.append(new_y)
+        y[0:23] = y[1:24]
+        y[24] = new_y
         if (count > 103):
             arreglo = np.array(y)
-            promedio = np.average(np.abs(arreglo[init:24+init]))
+            promedio = np.average(np.abs(arreglo))#[init:24+init]))
             if (promedio > 3):
                 cv2.putText(imag, 'parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
             else:
                 cv2.putText(imag, 'no parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
-            promedio_grafico.append(promedio)
+            #promedio_grafico.append(promedio)
             init += 1
 
         #print(new_y)
@@ -134,7 +137,7 @@ if __name__ == "__main__":
             break
         count += 1
     cap.release()
-    t = np.array(range(len(y)))
+    '''t = np.array(range(len(y)))
     s = np.array(y)
     fig, ax = plt.subplots()
     ax.plot(t, s)
@@ -155,5 +158,5 @@ if __name__ == "__main__":
     ax.grid()
 
     fig.savefig("test_promedio.png")
-    plt.show()
+    plt.show()'''
     # vid_writer.release()
