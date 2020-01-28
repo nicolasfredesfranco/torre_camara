@@ -9,8 +9,8 @@ from flask import request
 from flask import Response
 from flask import render_template
 
-value = 1
-status = 'Velocidad'
+data = {1: ['Velocidad', 0],
+        2: ['Velocidad', 0]}
 
 
 app = Flask(__name__)
@@ -19,13 +19,14 @@ app = Flask(__name__)
 @app.route('/', methods=['POST', 'GET'])
 def index():
     #global current_chats
-    global status, value
+    global data
 
     if request.method == 'POST':
         req = request.get_json(force=True)
         app.logger.info(req)
-        value = req.get('value')
-        status = req.get('status')
+
+        data[req.get('id')] = [req.get('status'), req.get('value')]
+
     return 'hola'
 
 
@@ -35,7 +36,8 @@ def index():
 
 @app.route('/test')
 def test():
-    return render_template("index.html", value=value, status=status)
+    return render_template("index.html", value_1=data[1][1], status_1=data[1][0],
+                           value_2=data[2][1], status_2=data[2][0])
 
 
 if __name__ == '__main__':
