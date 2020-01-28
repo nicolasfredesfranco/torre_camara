@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import argparse
 from numpy import linalg as LA
+import requests
 
 from os import listdir
 from os.path import isfile, isdir
@@ -106,6 +107,10 @@ if __name__ == "__main__":
         cv2.putText(imag_rotate, texto, (int(imag.shape[1]/2)+300, int(imag.shape[0]/2)+500), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0,255,255), 3)
         cv2.imshow('image1', imag_rotate)
         vid_writer.write(imag_rotate.astype(np.uint8))
+
+        data = {'status': 'Velocidad',
+                'value': numero_detectado.item()}
+        requests.post('http://0.0.0.0:5000', json=data)
         #print(np.min(np.array(list_texto)))
         #cv2.imshow('image', fondo)
 

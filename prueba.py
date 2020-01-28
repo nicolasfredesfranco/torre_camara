@@ -7,6 +7,7 @@ from numpy import linalg as LA
 #import matplotlib.pyplot as plt
 import numpy as np
 
+import requests
 from os import listdir
 from os.path import isfile, isdir
 
@@ -117,15 +118,29 @@ if __name__ == "__main__":
         new_y = x[-3] - x[-5] + 2.88958*y[-1] - 3.21816*y[-2] + 1.6928*y[-3] - 0.370204*y[-4]
         y[0:24] = y[1:25]
         y[24] = new_y
+        print(type(numero_final))
         if (count > 103):
             arreglo = np.array(y)
             promedio = np.average(np.abs(arreglo))#[init:24+init]))
             if (promedio > 3):
                 cv2.putText(imag, 'parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+
+                # Do post requests
+
+                data = {'status': 'Falla',
+                        'value': numero_final.item()}
+                requests.post('http://0.0.0.0:5000', json=data)
+
             else:
                 cv2.putText(imag, 'no parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+
+                # Do post requests
+                data = {'status': 'Velocidad',
+                        'value': numero_final.item()}
+                requests.post('http://0.0.0.0:5000', json=data)
+
             #promedio_grafico.append(promedio)
             init += 1
 
