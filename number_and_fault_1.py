@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='This program  tracking people.')
     #path del video a grabar
     #parser.add_argument('--path', type=str, help='Path of videos', default='rtsp://admin:lamngen1234@172.17.70.71/live2.sdp')
-    parser.add_argument('--path', type=str, help='Path of videos', default='last_video.avi')
+    parser.add_argument('--path', type=str, help='Path of videos', default='camara_1.avi')
 
     args = parser.parse_args()
 
@@ -64,13 +64,17 @@ if __name__ == "__main__":
         extracto = np.multiply(harto_rojo, poco_verde)*254
 
         #si se quiere revisar como funciona la mascara descomentar y comentar el imshow final
-        #cv2.imshow('image', harto_rojo*254)
+        #cv2.imshow('image', extracto)
         #tambien puede ser necesario revisar las dilataciones y erosiones
 
         kernel = np.ones((4, 2), np.uint8)
-        extracto = cv2.dilate(extracto, kernel, iterations=1)
+        extracto = cv2.dilate(extracto, kernel, iterations=3)
+        #cv2.imshow('image_dilate', extracto)
         kernel_1 = np.ones((2, 1), np.uint8)
-        extracto = cv2.erode(extracto, kernel_1, iterations=1)
+        extracto = cv2.erode(extracto, kernel_1, iterations=3)
+        kernel_2 = np.ones((1, 2), np.uint8)
+        extracto = cv2.dilate(extracto, kernel_2, iterations=1)
+        #cv2.imshow('image', extracto)
 
         extracto_u8 = np.array(extracto, dtype=np.uint8)
         fondo[:, :, 2] = extracto_u8
@@ -82,17 +86,17 @@ if __name__ == "__main__":
         list_blobs = []
         for i in range(retval):
             # if (stats[i, cv2.CC_STAT_WIDTH] < stats[i, cv2.CC_STAT_HEIGHT]) & (stats[i, cv2.CC_STAT_AREA] > 10):
-            if ((stats[i, cv2.CC_STAT_WIDTH] > 2) & (stats[i, cv2.CC_STAT_HEIGHT] > 10) & (stats[i, cv2.CC_STAT_AREA] > 20)& (stats[i, cv2.CC_STAT_AREA] < 5000)):
+            if ((stats[i, cv2.CC_STAT_WIDTH] > 2) & (stats[i, cv2.CC_STAT_HEIGHT] > 10) & (stats[i, cv2.CC_STAT_AREA] > 250) & (stats[i, cv2.CC_STAT_AREA] < 5000)):
                 xi = stats[i, cv2.CC_STAT_LEFT]
                 yi = stats[i, cv2.CC_STAT_TOP]
                 xf = stats[i, cv2.CC_STAT_LEFT] + stats[i, cv2.CC_STAT_WIDTH]
                 yf = stats[i, cv2.CC_STAT_TOP] + stats[i, cv2.CC_STAT_HEIGHT]
                 list_blobs.append([fondo[yi:yf, xi:xf, :], xi])
                 #si quieres guardar un nuevo data set de numeros
-                cv2.imwrite("data_new/prueba_" + str(contador) + ".png", fondo[yi:yf, xi:xf, :])
+                cv2.imwrite("data_terreno/prueba_" + str(contador) + ".png", fondo[yi:yf, xi:xf, :])
                 contador += 1
                 cv2.rectangle(fondo, (xi, yi), (xf, yf), (255, 255, 255), 1)
-
+        cv2.imshow('image_fondo', fondo)
         list_dist = []
         list_detection = []
         for imag_i, xi in list_blobs:
