@@ -29,6 +29,16 @@ if __name__ == "__main__":
     init = 80
     x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    vec_numeros = [0]*40 
+
+    # estado inicial
+    status = 'Velocidad'
+
+    # para  ver filtro total
+    y_total = list()
+    p_total = list()
+    desicion = list()
+
     count = 0
     frameHeight = round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frameWidth = round(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -38,7 +48,7 @@ if __name__ == "__main__":
 
     list_nums = []
     for i in range(10):
-        list_nums.append(cv2.imread('dataset/' + str(i) + '.png'))
+        list_nums.append(cv2.imread('data_etiquetada/' + str(i) + '.png'))
 
     #array_nums = np.array(list_nums)
     list_texto = [100, 100, 100]
@@ -93,7 +103,7 @@ if __name__ == "__main__":
                 yf = stats[i, cv2.CC_STAT_TOP] + stats[i, cv2.CC_STAT_HEIGHT]
                 list_blobs.append([fondo[yi:yf, xi:xf, :], xi])
                 #si quieres guardar un nuevo data set de numeros
-                cv2.imwrite("data_terreno/prueba_" + str(contador) + ".png", fondo[yi:yf, xi:xf, :])
+                #cv2.imwrite("data_terreno/prueba_" + str(contador) + ".png", fondo[yi:yf, xi:xf, :])
                 contador += 1
                 cv2.rectangle(fondo, (xi, yi), (xf, yf), (255, 255, 255), 1)
         cv2.imshow('image_fondo', fondo)
@@ -130,32 +140,37 @@ if __name__ == "__main__":
         new_y = x[-3] - x[-5] + 2.88958*y[-1] - 3.21816*y[-2] + 1.6928*y[-3] - 0.370204*y[-4]
         y[0:24] = y[1:25]
         y[24] = new_y
+
+        y_total.extend(y)
+
+        vec_numeros[0:len(vec_numeros)-1] = vec_numeros[1:len(vec_numeros)]
+        vec_numeros[len(vec_numeros)-1] = numero_final
+        counts = np.bincount(np.array(vec_numeros))
+        num_moda = np.argmax(counts)
         #print(type(numero_final))
         #no considera el principio del video
         #print((time.time() - time_1)*1000)
         if (count > 103):
             arreglo = np.array(y)
             promedio = np.average(np.abs(arreglo))
-            if (promedio > 3):
-                cv2.putText(imag, 'parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+            p_total.append(promedio)
 
-                # Do post requests
+            if (promedio > 4) and (status=='Velocidad'):
+                status = 'Falla'
+                desicion.append(1)
+            elif (promedio < 1) and (status=='Falla'):
+                status = 'Velocidad'
+                desicion.append(0)
 
-                data = {'status': 'Falla',
-                        'value': numero_final.item(),
-                        'id': 1}
-                requests.post('http://0.0.0.0:5000', json=data)
 
-            else:
-                cv2.putText(imag, 'no parpadea', (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
+            cv2.putText(imag, status, (int(imag.shape[0] / 2), int(imag.shape[1] / 2)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
 
-                # Do post requests
-                data = {'status': 'Velocidad',
-                        'value': numero_final.item(),
-                        'id': 1}
-                requests.post('http://0.0.0.0:5000', json=data)
+             #Do post requests
+            data = {'status': status,
+                    'value': num_moda.item(),
+                    'id': 1}
+            requests.post('http://0.0.0.0:5000', json=data)
 
             #promedio_grafico.append(promedio)
             init += 1
@@ -176,19 +191,31 @@ if __name__ == "__main__":
         '''
         count += 1
     cap.release()
+
+    y_total = np.array(y_total)
+    p_total = np.array(p_total)
+    desicion = np.array(desicion)
+    np.save('y_total_2.npy', y_total)
+    np.save('p_total_2.npy', p_total)
+    np.save('desicion_2.npy', desicion)
+
+
     #si se necesita revisar el filtro
-    '''t = np.array(range(len(y)))
-    s = np.array(y)
+    '''
+    t = np.array(range(len(y_total)))
+    s = np.array(y_total)
     fig, ax = plt.subplots()
-    ax.plot(t, s)
+
 
     ax.set(xlabel='time', ylabel='out', title='salida filtro')
     ax.grid()
 
-    fig.savefig("test.png")
+    fig.savefig("test_2.png")
     plt.show()
-    #vid_writer.release()
 
+    #vid_writer.release()
+    '''
+    ''' 
     t = np.array(range(len(promedio_grafico)))
     s = np.array(promedio_grafico)
     fig, ax = plt.subplots()
@@ -198,5 +225,6 @@ if __name__ == "__main__":
     ax.grid()
 
     fig.savefig("test_promedio.png")
-    plt.show()'''
+    plt.show()
+    '''
     # vid_writer.release()
