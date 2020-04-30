@@ -59,15 +59,16 @@ class Connect2Server:
         try:
             response = requests.post(self.url_to_send, headers=headers, json=data, timeout=1)
             if response.status_code == 201:
-                return 0
+                print('enviado')
             elif response.status_code == 401:
                 print('resfrescar token')
                 self.get_access_token()
-                return 1
+                self.send(number, status, idMaquina)
             else:
                 print('error', response.status_code)
         except requests.exceptions.RequestException as e:
-            return 2
+            print(e)
+    
     
         
     #def handle_error_connect():

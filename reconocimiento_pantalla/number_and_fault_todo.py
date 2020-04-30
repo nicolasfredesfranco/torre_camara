@@ -13,7 +13,7 @@ from detect_digit import*
 from connect import Connect2Server
 
 # estado inicial
-status = 'Velocidad'
+status = 'Detenido'
 num_mode = 'disconnected'
 
 '''
@@ -32,7 +32,7 @@ def sist_recg_fault(ip, area, queue):
 
     path = 'rtsp://admin:lamngen1234@' + ip + '/live2.sdp'
     #path = '/home/azucar/Work/Lamngen/torre/sist_detect_fails/videos/ultimo_video_torre.avi'
-    path = '/home/azucar/Work/Lamngen/torre/sist_detect_fails/videos/camIzquierda_ultimo_video_torre.avi'
+    #path = '/home/azucar/Work/Lamngen/torre/sist_detect_fails/videos/camIzquierda_ultimo_video_torre.avi'
     print(ip)
 
     cap = cv2.VideoCapture(path)
@@ -59,6 +59,11 @@ def sist_recg_fault(ip, area, queue):
 
     digit_recognition = DigitRecognition(area=area)
 
+    # para tomar data
+    time_1 = time.time()
+    data = []
+    count_data = 0
+
     while cap.isOpened():
         ret, image = cap.read()
 
@@ -81,6 +86,19 @@ def sist_recg_fault(ip, area, queue):
             # sumar 1 a contador con nada
             count_nada += 1
 
+        # pare ver tiempo
+        print('number:', number)
+        print('cant_obj', n_obj)
+        time_new = time.time()
+        data.append([n_obj, time_new - time_1])
+        time_1 = time_new
+        print(len(data))
+        if len(data) == 1000:
+            data = np.array(data)
+            np.save(str(count_data), data)
+            data = []
+            count_data +=1
+
         # FILTRO
         new_y = x[-3] - x[-5] + 2.88958 * y[-1] - 3.21816 * y[-2] + 1.6928 * y[-3] - 0.370204 * y[-4]
         y[0:24] = y[1:25]
@@ -95,7 +113,7 @@ def sist_recg_fault(ip, area, queue):
         if count > 103:
             arreglo = np.array(y)
             promedio = np.average(np.abs(arreglo))
-            print(promedio)
+            #print(promedio)
             # maquina de estados
             if status == 'Velocidad':
                 if count_nada > 15:
@@ -193,28 +211,29 @@ if __name__ == "__main__":
     # start hilo que envia al servido
     #t = Timer(3.0, send_to_server, args=(args.id,))
     #t.start()
-    cant_total = 0
-    data_enviado = list()
+    #cant_total = 0
+    #data_enviado = list()
     while True:
 
         # reviza si la cola tiene datos
         if not queue.empty():
-            cant_total += 1
+            #cant_total += 1
             data = queue.get()
             if data['status'] != status or data['num_mode'] != num_mode:
                 status = data['status']
                 num_mode = data['num_mode']
-                #server.send(num_mode, status, args.id)
+                server.send(num_mode, status, args.id)
                 count_to_send = 0
-                data_enviado.append((status, num_mode))
+                print(num_mode, status)
             elif (count_to_send + 1) % send_rate == 0:
                 count_to_send = 0
-                data_enviado.append((status, num_mode))
+                server.send(num_mode, status, args.id)
+                print(num_mode, status)
             else:
                 count_to_send += 1
 
 
-            print(status, num_mode)
+            #print(status, num_mode)
 
         # maquina de estados
         if state == 'check_server':
@@ -237,11 +256,11 @@ if __name__ == "__main__":
             if not p_camera.is_alive():
                 state = 'check_server'
                 p_camera.terminate()
-                dt = time.time() - t1
-                print(cant_total, dt)
-                print('data enviada:\n', data_enviado)
-                print(len(data_enviado)/dt, len(data_enviado))
-                break
+                #dt = time.time() - t1
+                #print(cant_total, dt)
+                #print('data enviada:\n', data_enviado)
+                #print(len(data_enviado)/dt, len(data_enviado))
+                #break
 
         else:
             state = 'check_server'

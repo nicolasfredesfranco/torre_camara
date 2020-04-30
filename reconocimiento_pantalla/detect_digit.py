@@ -115,7 +115,7 @@ class DigitRecognition:
                 w = w_rec
             roi = thresh[y:y + h, x:x + w]
             #cv2.imshow('roi', roi)
-            print('area:', area)
+            #print('area:', area)
 
 
             # compute the width and height of each of the 7 segments
@@ -138,7 +138,7 @@ class DigitRecognition:
             on = [0] * len(segments)
 
             threshold_area_segments = [0.5, 0.4, 0.5, 0.5, 0.5, 0.4, 0.5]
-            areas = []
+            #areas = []
 
             # loop over the segments
             for (i, ((xA, yA), (xB, yB))) in enumerate(segments):
@@ -159,13 +159,13 @@ class DigitRecognition:
                 if total / float(area) >= threshold_area_segments[i]:
                     on[i] = 1
 
-                areas.append(round(total/area, 2))
+                #areas.append(round(total/area, 2))
 
             # lookup the digit and draw it on the image
             on = tuple(on)
 
-            print(on)
-            print(areas)
+            #print(on)
+            #print(areas)
 
             try:
                 digit = self.DIGITS_LOOKUP[on]
@@ -181,7 +181,7 @@ class DigitRecognition:
 
             digits.append(digit)
 
-            print(digits)
+            #print(digits)
         return digits
 
     def recognition(self, image):
